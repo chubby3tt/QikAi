@@ -5,9 +5,11 @@ import requests
 import os
 import shutil
 
-# Configure Discord bot engine
+# Configure Discord bot engine with message tracking capabilities
 intents = discord.Intents.default()
 intents.message_content = True
+intents.presences = True  # Allows status sync updates
+
 bot = commands.Bot(command_prefix="!", intents=intents)
 
 # SECURITY SETUP: 
@@ -17,6 +19,8 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 @bot.event
 async def on_ready():
+    # FORCE DISCORD SYNC: Forces the bot to instantly display as active and green in your server member list
+    await bot.change_presence(status=discord.Status.online, activity=discord.Game(name="Roblox Image-to-3D"))
     print(f"🚀 Qik AI is successfully online! High-volume free API bridge established.")
 
 @bot.event
@@ -29,7 +33,7 @@ async def on_message(message):
     if bot.user.mentioned_in(message) and message.attachments:
         attachment = message.attachments
         
-        # Filter strictly for images
+        # Filter strictly for standard image formats
         if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             
             # --- DISTINCT STATE MESSAGE 1 ---
