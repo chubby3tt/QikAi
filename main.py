@@ -26,7 +26,7 @@ threading.Thread(target=run_web_server, daemon=True).start()
 
 # --- DISCORD BOT MAIN LOGIC ---
 intents = discord.Intents.default()
-intents.message_content = True
+intents.message_content = True  # Double-check that this switch is turned ON in the Developer Portal!
 intents.presences = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -44,7 +44,7 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # STRICT CHECK: Only triggers if the bot is explicitly pinged/tagged AND there is a file attachment
+    # STRICT MODE: Only triggers if the bot user is directly tagged/mentioned AND an attachment exists
     if bot.user.mentioned_in(message) and message.attachments:
         attachment = message.attachments
         
