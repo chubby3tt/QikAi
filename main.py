@@ -28,10 +28,9 @@ threading.Thread(target=run_web_server, daemon=True).start()
 
 # --- DISCORD BOT MAIN LOGIC ---
 intents = discord.Intents.default()
-intents.message_content = True  # STAYS ON - Requires Developer Portal Switch enabled!
+intents.message_content = True  
 intents.presences = True
 
-# Standard client structure to guarantee text and tag delivery
 client = discord.Client(intents=intents)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
@@ -44,15 +43,15 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    # Ignore bot's own messages
     if message.author == client.user:
         return
 
     # STRICT CHECK: Triggers ONLY if the bot user is directly tagged/mentioned AND an attachment exists
     if client.user.mentioned_in(message) and message.attachments:
-        attachment = message.attachments
         
-        # Verify the file is an image cleanly
+        # FIX: Grab the very first attachment out of the list safely
+        attachment = message.attachments[0]
+        
         is_image = attachment.content_type and attachment.content_type.startswith("image/")
         is_extension = attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
         
@@ -85,10 +84,9 @@ async def on_message(message):
                 # --- HUMANE MESSAGE 3 ---
                 await message.channel.send("Generation complete! Wrapping everything into a clean asset package... 📦")
                 
-                # Check for output data array results or direct file strings safely
                 actual_file_path = inference_result if isinstance(inference_result, tuple) else inference_result
 
-                optimized_filename = f"QikAI_Asset_{str(message.id[:6])}.glb"
+                optimized_filename = f"QikAI_Asset_{str(message.id)[:6]}.glb"
                 local_asset_path = os.path.join(task_directory, optimized_filename)
                 shutil.move(actual_file_path, local_asset_path)
 
@@ -99,10 +97,8 @@ async def on_message(message):
                 await message.channel.send(content=completion_text, files=files_payload)
 
             except Exception as system_crash_log:
-                # Catch any network or file errors cleanly in the chat
                 await message.channel.send(f"Oops, ran into an issue building that model. 🛠️\nError details: `{str(system_crash_log)}`")
             finally:
-                # Wipe temporary workspace files cleanly to preserve Render storage space
                 if os.path.exists(task_directory):
                     shutil.rmtree(task_directory)
 
