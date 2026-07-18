@@ -50,7 +50,7 @@ async def on_message(message):
     if client.user.mentioned_in(message) and message.attachments:
         
         # Grab the very first attachment out of the list safely
-        attachment = message.attachments[0]
+        attachment = message.attachments
         
         is_image = attachment.content_type and attachment.content_type.startswith("image/")
         is_extension = attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
@@ -73,12 +73,13 @@ async def on_message(message):
                 # --- HUMANE MESSAGE 2 ---
                 await message.channel.send("File saved. Processing the textures and generating the 3D mesh... ⏳")
 
-                # FIX: Updated keyword argument to 'hf_token' for the newer Gradio Client library versions
+                # Connect to the Hugging Face Stable Fast 3D Space using your safe token
                 hf_client = Client("stabilityai/stable-fast-3d", hf_token=HF_TOKEN)
                 
-                # Positional prediction to prevent API name search errors
+                # FIX: Explicitly targeting the '/process' route to handle multiple endpoint checks
                 inference_result = hf_client.predict(
-                    image=handle_file(local_image_input)
+                    image=handle_file(local_image_input),
+                    api_name="/process"
                 )
                 
                 # --- HUMANE MESSAGE 3 ---
