@@ -49,7 +49,7 @@ async def on_message(message):
     # STRICT CHECK: Triggers ONLY if the bot user is directly tagged/mentioned AND an attachment exists
     if client.user.mentioned_in(message) and message.attachments:
         
-        # FIX: Grab the very first attachment out of the list safely
+        # Grab the very first attachment out of the list safely
         attachment = message.attachments[0]
         
         is_image = attachment.content_type and attachment.content_type.startswith("image/")
@@ -73,8 +73,8 @@ async def on_message(message):
                 # --- HUMANE MESSAGE 2 ---
                 await message.channel.send("File saved. Processing the textures and generating the 3D mesh... ⏳")
 
-                # Connect to the Hugging Face Stable Fast 3D Space using your safe token
-                hf_client = Client("stabilityai/stable-fast-3d", token=HF_TOKEN)
+                # FIX: Updated keyword argument to 'hf_token' for the newer Gradio Client library versions
+                hf_client = Client("stabilityai/stable-fast-3d", hf_token=HF_TOKEN)
                 
                 # Positional prediction to prevent API name search errors
                 inference_result = hf_client.predict(
