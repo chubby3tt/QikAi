@@ -1,5 +1,4 @@
 import discord
-from discord.ext import commands
 from gradio_client import Client, handle_file
 import requests
 import os
@@ -7,7 +6,7 @@ import shutil
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-# --- BACKGROUND WEB SERVER TO ANSWER UPTIMEROBOT PINGS ---
+# --- BACKGROUND WEB SERVER TO KEEP RENDER HAPPY ---
 class HealthCheckHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -17,41 +16,48 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
 
 def run_web_server():
     server_address = ('0.0.0.0', 10000)
-    httpd = HTTPServer(server_address, HealthCheckHandler)
-    print("🌍 Health monitoring server active on Port 10000")
-    httpd.serve_forever()
+    try:
+        httpd = HTTPServer(server_address, HealthCheckHandler)
+        print("🌍 Health monitoring server active on Port 10000")
+        httpd.serve_forever()
+    except Exception as e:
+        print(f"Web server warning: {e}")
 
-# Start the web server instantly in a separate thread so it doesn't slow down the bot
+# Start the web server instantly in a separate thread
 threading.Thread(target=run_web_server, daemon=True).start()
 
 # --- DISCORD BOT MAIN LOGIC ---
 intents = discord.Intents.default()
-intents.message_content = True  # Double-check that this switch is turned ON in the Developer Portal!
+intents.message_content = True  # STAYS ON - Requires Developer Portal Switch enabled!
 intents.presences = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
+# Standard client structure to guarantee text and tag delivery
+client = discord.Client(intents=intents)
 
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 HF_TOKEN = os.getenv("HF_TOKEN")
 
-@bot.event
+@client.event
 async def on_ready():
-    await bot.change_presence(status=discord.Status.online)
+    await client.change_presence(status=discord.Status.online)
     print(f"🤖 Qik AI V2 is officially online and ready to help you!")
 
-@bot.event
+@client.event
 async def on_message(message):
-    if message.author == bot.user:
+    # Ignore bot's own messages
+    if message.author == client.user:
         return
 
-    # STRICT MODE: Only triggers if the bot user is directly tagged/mentioned AND an attachment exists
-    if bot.user.mentioned_in(message) and message.attachments:
+    # STRICT CHECK: Triggers ONLY if the bot user is directly tagged/mentioned AND an attachment exists
+    if client.user.mentioned_in(message) and message.attachments:
         attachment = message.attachments
         
-        # Check if the file is an image using its actual content type
+        # Verify the file is an image cleanly
         is_image = attachment.content_type and attachment.content_type.startswith("image/")
+        is_extension = attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))
         
-        if is_image:
+        if is_image or is_extension:
+            
             # --- HUMANE MESSAGE 1 ---
             await message.channel.send("Got the image! Downloading it right now... 📥")
             
@@ -69,10 +75,10 @@ async def on_message(message):
                 await message.channel.send("File saved. Processing the textures and generating the 3D mesh... ⏳")
 
                 # Connect to the Hugging Face Stable Fast 3D Space using your safe token
-                client = Client("stabilityai/stable-fast-3d", token=HF_TOKEN)
+                hf_client = Client("stabilityai/stable-fast-3d", token=HF_TOKEN)
                 
                 # Positional prediction to prevent API name search errors
-                inference_result = client.predict(
+                inference_result = hf_client.predict(
                     image=handle_file(local_image_input)
                 )
                 
@@ -82,7 +88,7 @@ async def on_message(message):
                 # Check for output data array results or direct file strings safely
                 actual_file_path = inference_result if isinstance(inference_result, tuple) else inference_result
 
-                optimized_filename = f"QikAI_Asset_{message.id[:6]}.glb"
+                optimized_filename = f"QikAI_Asset_{str(message.id[:6])}.glb"
                 local_asset_path = os.path.join(task_directory, optimized_filename)
                 shutil.move(actual_file_path, local_asset_path)
 
@@ -100,6 +106,5 @@ async def on_message(message):
                 if os.path.exists(task_directory):
                     shutil.rmtree(task_directory)
 
-    await bot.process_commands(message)
-
-bot.run(DISCORD_TOKEN)
+# Initialize application loop
+client.run(DISCORD_TOKEN)
