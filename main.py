@@ -25,15 +25,15 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Check if a developer dropped an attachment file
-    if message.attachments:
+    # SAFETY CHECK: Only trigger if the bot is explicitly tagged/mentioned AND there is an attachment
+    if bot.user.mentioned_in(message) and message.attachments:
         attachment = message.attachments
         
         # Filter strictly for images
         if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             
             # --- DISTINCT STATE MESSAGE 1 ---
-            await message.channel.send("🤖 **Qik AI:** Target file identified. Downloading asset data from Discord servers...")
+            await message.channel.send("🤖 **Qik AI:** Target file identified via mention. Downloading asset data from Discord servers...")
             
             # Initialize unique isolated workspace directory for this process task
             task_directory = f"workspace_{message.id}"
@@ -82,6 +82,7 @@ async def on_message(message):
                 if os.path.exists(task_directory):
                     shutil.rmtree(task_directory)
 
+    # Process other text commands if needed later
     await bot.process_commands(message)
 
 # Initialize application loop
