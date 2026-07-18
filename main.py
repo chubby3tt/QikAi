@@ -13,7 +13,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write(b"Qik AI Awake Keep Active.")
+        self.wfile.write(b"Qik AI V2 Awake Keep Active.")
 
 def run_web_server():
     server_address = ('0.0.0.0', 10000)
@@ -37,20 +37,21 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 @bot.event
 async def on_ready():
     await bot.change_presence(status=discord.Status.online)
-    print(f"🤖 Qik AI is officially online and ready to help you!")
+    print(f"🤖 Qik AI V2 is officially online and ready to help you!")
 
 @bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
-    # Check if the message contains "qik ai" or pings the bot, and has an image
-    is_triggered = bot.user.mentioned_in(message) or "qik ai" in message.content.lower()
-    
-    if is_triggered and message.attachments:
+    # STRICT CHECK: Only triggers if the bot is explicitly pinged/tagged AND there is a file attachment
+    if bot.user.mentioned_in(message) and message.attachments:
         attachment = message.attachments
-        if attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
-            
+        
+        # Check if the file is an image using its actual content type
+        is_image = attachment.content_type and attachment.content_type.startswith("image/")
+        
+        if is_image:
             # --- HUMANE MESSAGE 1 ---
             await message.channel.send("Got the image! Downloading it right now... 📥")
             
@@ -70,7 +71,7 @@ async def on_message(message):
                 # Connect to the Hugging Face Stable Fast 3D Space using your safe token
                 client = Client("stabilityai/stable-fast-3d", token=HF_TOKEN)
                 
-                # FIX: Switched to positional prediction to prevent API name search errors
+                # Positional prediction to prevent API name search errors
                 inference_result = client.predict(
                     image=handle_file(local_image_input)
                 )
