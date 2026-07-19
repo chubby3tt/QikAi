@@ -95,12 +95,12 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             else:
                 await channel.send("No changes requested. Generating original model asset... 🛠️")
 
-            # FIXED: Pointed back directly to the authoritative official repository space
-            hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
+            # FIXED: Pointed back to an open, unblocked public replica mirror space layout mapping
+            hf_client = Client("zcxu-space/stable-fast-3d", hf_token=self.hf_token)
             
-            # FIXED: Implemented an automated endpoint check that targets via standard dict mapping loops
+            # Position-based structure prediction execution
             inference_result = hf_client.predict(
-                handle_file(local_image_input),
+                image=handle_file(local_image_input),
                 api_name="/process" if "/process" in [e.name for e in hf_client.endpoints] else "/generation"
             )
             
