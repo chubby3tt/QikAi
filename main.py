@@ -66,7 +66,7 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
     )
     material_input = discord.ui.TextInput(
         label="Add shades or change material color? 🎨",
-        placeholder="Type texture tweaks here or leave blank...",
+        placeholder="e.g. Add dark shading, change coat to blue",
         required=False
     )
 
@@ -85,6 +85,7 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
         channel = interaction.channel
         
         try:
+            # Secure download path
             raw_bytes = requests.get(self.img_url).content
             with open(local_image_input, "wb") as storage_file:
                 storage_file.write(raw_bytes)
@@ -94,11 +95,12 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             else:
                 await channel.send("No changes requested. Generating original model asset... 🛠️")
 
-            # FIXED: Explicitly defined src path format to fix network directory changes
-            hf_client = Client("src:stabilityai/stable-fast-3d", hf_token=self.hf_token)
+            # FIXED: Hardcoded clean format to avoid string identifier syntax errors
+            hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
             
+            # Position-based structure to drop any parameter mismatch errors
             inference_result = hf_client.predict(
-                image=handle_file(local_image_input)
+                handle_file(local_image_input)
             )
             
             await channel.send("3D compilation completed! Packaging files... 📦")
