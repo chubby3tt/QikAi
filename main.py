@@ -94,10 +94,9 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             else:
                 await channel.send("No changes requested. Generating original model asset... 🛠️")
 
-            # AI Synthesis Client
-            hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
+            # FIXED: Explicitly defined src path format to fix network directory changes
+            hf_client = Client("src:stabilityai/stable-fast-3d", hf_token=self.hf_token)
             
-            # FIXED: Removed the explicit api_name parameter to prevent route mismatch errors!
             inference_result = hf_client.predict(
                 image=handle_file(local_image_input)
             )
