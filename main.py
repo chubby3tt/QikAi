@@ -95,12 +95,13 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             else:
                 await channel.send("No changes requested. Generating original model asset... 🛠️")
 
-            # FIXED: Hardcoded clean format to avoid string identifier syntax errors
+            # Initialize Hugging Face model client
             hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
             
-            # Position-based structure to drop any parameter mismatch errors
+            # FIXED: Updated endpoint key identifier to the correct active path name
             inference_result = hf_client.predict(
-                handle_file(local_image_input)
+                image=handle_file(local_image_input),
+                api_name="/generation"
             )
             
             await channel.send("3D compilation completed! Packaging files... 📦")
@@ -177,7 +178,7 @@ async def on_message(message):
 
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
-        single_attachment = message.attachments[0]
+        single_attachment = message.attachments
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
