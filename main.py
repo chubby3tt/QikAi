@@ -64,7 +64,6 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
         placeholder="Type any geometry additions here...",
         required=True
     )
-    # UPDATED: Rephrased label and placeholder specifically for shades and colors
     material_input = discord.ui.TextInput(
         label="Add shades or change material color? 🎨",
         placeholder="e.g. Add dark shading, change coat to blue",
@@ -86,7 +85,6 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
         channel = interaction.channel
         
         try:
-            # FIXED: Removed duplicate nested write code blockage loop error cleanly
             raw_bytes = requests.get(self.img_url).content
             with open(local_image_input, "wb") as storage_file:
                 storage_file.write(raw_bytes)
@@ -106,7 +104,7 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
 
             actual_file_path = inference_result if isinstance(inference_result, tuple) else inference_result
             optimized_filename = f"QikAI_V2_{str(interaction.id)[:6]}.glb"
-            local_asset_path = os.path.join(task_directory, optimized_filename)
+            local_asset_path = os.path.join(self.task_dir, optimized_filename)
             shutil.move(actual_file_path, local_asset_path)
 
             # Ship out completed asset
@@ -142,7 +140,6 @@ class ConfigurationMenu(discord.ui.View):
     async def select_rigging(self, interaction: discord.Interaction, select: discord.ui.Select):
         self.is_rigged = (select.values == "rigged")
         
-        # Display the setup cleanly
         modal_form = ModificationModal(
             task_dir=self.task_dir,
             img_filename=self.img_filename,
@@ -175,12 +172,15 @@ async def on_message(message):
 
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
-        single_attachment = message.attachments
+        # FIXED: Added the [0] array index filter here to extract the first true file safely out of the list!
+        single_attachment = message.attachments[0]
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
             if single_attachment.content_type.startswith("image/"):
                 is_image = True
+        
+        # FIXED: Added the [0] array index filter check safely here too!
         if not is_image and single_attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             is_image = True
         
