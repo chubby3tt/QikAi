@@ -59,15 +59,16 @@ class FeedbackStars(discord.ui.View):
 
 class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"):
     """Pops up the short-labeled text form inputs."""
+    # FIXED: Set required=False on both so users can cleanly submit empty forms!
     changes_input = discord.ui.TextInput(
         label="What do you want changed? (e.g. Add hat)",
-        placeholder="Type any geometry additions here...",
-        required=True
+        placeholder="Type additions here or leave blank...",
+        required=False
     )
     material_input = discord.ui.TextInput(
         label="Add shades or change material color? 🎨",
-        placeholder="e.g. Add dark shading, change coat to blue",
-        required=True
+        placeholder="Type texture tweaks here or leave blank...",
+        required=False
     )
 
     def __init__(self, task_dir, img_filename, img_url, is_rigged, hf_token):
@@ -89,7 +90,11 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             with open(local_image_input, "wb") as storage_file:
                 storage_file.write(raw_bytes)
             
-            await channel.send("Applying your custom text adjustments directly to the model asset... ✨")
+            # Print feedback to user based on what they filled out
+            if self.changes_input.value or self.material_input.value:
+                await channel.send("Applying your custom text adjustments directly to the model asset... ✨")
+            else:
+                await channel.send("No changes requested. Generating original model asset... 🛠️")
 
             # AI Synthesis Client
             hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
@@ -172,15 +177,12 @@ async def on_message(message):
 
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
-        # FIXED: Added the [0] array index filter here to extract the first true file safely out of the list!
         single_attachment = message.attachments[0]
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
             if single_attachment.content_type.startswith("image/"):
                 is_image = True
-        
-        # FIXED: Added the [0] array index filter check safely here too!
         if not is_image and single_attachment.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             is_image = True
         
