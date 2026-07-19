@@ -98,7 +98,7 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             # Initialize Hugging Face model client
             hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
             
-            # FIXED: Updated endpoint key identifier to the correct active path name
+            # Target endpoint generation pathway
             inference_result = hf_client.predict(
                 image=handle_file(local_image_input),
                 api_name="/generation"
@@ -178,7 +178,9 @@ async def on_message(message):
 
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
-        single_attachment = message.attachments
+        
+        # FIXED: Added the explicit array index extractor target parameter here!
+        single_attachment = message.attachments[0]
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
