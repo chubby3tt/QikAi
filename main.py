@@ -174,7 +174,8 @@ async def on_message(message):
 
     # Triggered strictly when user tags the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
-        single_attachment = message.attachments
+        # FIXED: Added [0] index accessor here to pull the singular raw object file right out of the data collection list!
+        single_attachment = message.attachments[0]
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
