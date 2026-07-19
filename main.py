@@ -95,13 +95,13 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             else:
                 await channel.send("No changes requested. Generating original model asset... 🛠️")
 
-            # Initialize open replica endpoint client mapping
-            hf_client = Client("kxic/stable-fast-3d", hf_token=self.hf_token)
+            # FIXED: Pointed back directly to the authoritative official repository space
+            hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
             
-            # Position-based structure prediction execution
+            # FIXED: Implemented an automated endpoint check that targets via standard dict mapping loops
             inference_result = hf_client.predict(
-                image=handle_file(local_image_input),
-                fn_index=0
+                handle_file(local_image_input),
+                api_name="/process" if "/process" in [e.name for e in hf_client.endpoints] else "/generation"
             )
             
             await channel.send("3D compilation completed! Packaging files... 📦")
@@ -180,7 +180,7 @@ async def on_message(message):
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
         
-        # FIXED: Pulled index [0] to extract the single raw attachment file straight out of the list collection array!
+        # Grab the singular raw file safely out of the list collection array
         single_attachment = message.attachments[0]
         
         is_image = False
