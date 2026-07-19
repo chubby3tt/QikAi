@@ -58,15 +58,16 @@ class FeedbackStars(discord.ui.View):
 
 
 class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"):
-    """Pops up the text field form panels."""
+    """Pops up the short-labeled text form inputs."""
     changes_input = discord.ui.TextInput(
-        label="What do you want different? (e.g. Add a hat)",
+        label="What do you want changed? (e.g. Add hat)",
         placeholder="Type any geometry additions here...",
         required=True
     )
+    # UPDATED: Rephrased label and placeholder specifically for shades and colors
     material_input = discord.ui.TextInput(
-        label="How should the material change? (e.g. Metallic)",
-        placeholder="Type any texture adjustments here...",
+        label="Add shades or change material color? 🎨",
+        placeholder="e.g. Add dark shading, change coat to blue",
         required=True
     )
 
@@ -85,7 +86,7 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
         channel = interaction.channel
         
         try:
-            # Download file
+            # FIXED: Removed duplicate nested write code blockage loop error cleanly
             raw_bytes = requests.get(self.img_url).content
             with open(local_image_input, "wb") as storage_file:
                 storage_file.write(raw_bytes)
@@ -105,7 +106,7 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
 
             actual_file_path = inference_result if isinstance(inference_result, tuple) else inference_result
             optimized_filename = f"QikAI_V2_{str(interaction.id)[:6]}.glb"
-            local_asset_path = os.path.join(self.task_dir, optimized_filename)
+            local_asset_path = os.path.join(task_directory, optimized_filename)
             shutil.move(actual_file_path, local_asset_path)
 
             # Ship out completed asset
@@ -141,7 +142,7 @@ class ConfigurationMenu(discord.ui.View):
     async def select_rigging(self, interaction: discord.Interaction, select: discord.ui.Select):
         self.is_rigged = (select.values == "rigged")
         
-        # Immediately display the updated text form window box overlay interface
+        # Display the setup cleanly
         modal_form = ModificationModal(
             task_dir=self.task_dir,
             img_filename=self.img_filename,
@@ -172,10 +173,9 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    # Triggered strictly when user tags the bot account directly with an image file
+    # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
-        # FIXED: Added [0] index accessor here to pull the singular raw object file right out of the data collection list!
-        single_attachment = message.attachments[0]
+        single_attachment = message.attachments
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
