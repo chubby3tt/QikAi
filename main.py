@@ -95,10 +95,10 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             else:
                 await channel.send("No changes requested. Generating original model asset... 🛠️")
 
-            # FIXED: Pointed directly to the ungated public demo Space URL path endpoint mapping
-            hf_client = Client("stabilityai/stable-fast-3d-demo", hf_token=self.hf_token)
+            # Point directly to the official demo Space using token authentication
+            hf_client = Client("stabilityai/stable-fast-3d-demo", token=self.hf_token)
             
-            # Executing predictions using adaptive fallback endpoint indexing loops
+            # Predict with auto-fallback route calculation
             inference_result = hf_client.predict(
                 image=handle_file(local_image_input),
                 api_name="/process" if "/process" in [e.name for e in hf_client.endpoints] else "/generation"
@@ -180,8 +180,8 @@ async def on_message(message):
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
         
-        # Grab the singular raw file safely out of the list collection array
-        single_attachment = message.attachments[0]
+        # Pull the raw single file safely out of the list collection array
+        single_attachment = message.attachments
         
         is_image = False
         if hasattr(single_attachment, 'content_type') and single_attachment.content_type:
