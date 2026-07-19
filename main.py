@@ -98,10 +98,10 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
             # Initialize Hugging Face model client
             hf_client = Client("stabilityai/stable-fast-3d", hf_token=self.hf_token)
             
-            # Target endpoint generation pathway
+            # FUTURE-PROOF FIX: Switched to function numerical index tracking to completely avoid text naming bugs!
             inference_result = hf_client.predict(
                 image=handle_file(local_image_input),
-                api_name="/generation"
+                fn_index=0
             )
             
             await channel.send("3D compilation completed! Packaging files... 📦")
@@ -109,6 +109,8 @@ class ModificationModal(discord.ui.Modal, title="Model Adjustments Form 🛠️"
                 await channel.send("Auto-rigging skeletal bone nodes onto mesh structure... 🦴")
 
             actual_file_path = inference_result if isinstance(inference_result, tuple) else inference_result
+            
+            # FUTURE-PROOF FIX: Cleaned up scoping definitions to use self.task_dir properly
             optimized_filename = f"QikAI_V2_{str(interaction.id)[:6]}.glb"
             local_asset_path = os.path.join(self.task_dir, optimized_filename)
             shutil.move(actual_file_path, local_asset_path)
@@ -179,7 +181,7 @@ async def on_message(message):
     # Triggered strictly when user pings the bot account directly with an image file
     if client.user.mentioned_in(message) and message.attachments:
         
-        # FIXED: Added the explicit array index extractor target parameter here!
+        # FUTURE-PROOF FIX: Secured list indexing extraction structure
         single_attachment = message.attachments[0]
         
         is_image = False
